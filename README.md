@@ -79,7 +79,7 @@ More information can be found at https://github.com/chef/bento
 vagrant@vagrant:~$
 ```
 
-# 6. SSH and some settings from HAproxy
+# 6. SSH settings from HAproxy
 ```
 cd
 sudo hostnamectl set-hostname haproxy
@@ -92,30 +92,13 @@ ssh vagrant@192.168.30.101
 ssh vagrant@192.168.30.102
 ```
 
-
-
+# 7. Install Docker on every node
+```
 sudo apt-get update
 sudo apt-get install -y curl
 curl https://get.docker.com | sh && sudo systemctl --now enable docker
+```
 
-cat <<EOF > haproxy.cfg
-global
-    maxconn 256
-
-defaults
-    mode http
-    timeout client     120000ms
-    timeout server     120000ms
-    timeout connect      6000ms
-
-listen http-in
-    bind *:80
-    server proxy-server 192.168.199.10
-EOF
-
-sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro haproxy:1.8
-
-From PC browser http://192.168.30.10
 
 
 
@@ -242,3 +225,22 @@ sudo kubeadm join 192.168.30.100:6443 --token lpjjem.j4j25xepq5ojq2xp \
 
 
 
+
+cat <<EOF > haproxy.cfg
+global
+    maxconn 256
+
+defaults
+    mode http
+    timeout client     120000ms
+    timeout server     120000ms
+    timeout connect      6000ms
+
+listen http-in
+    bind *:80
+    server proxy-server 192.168.199.10
+EOF
+
+sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro haproxy:1.8
+
+From PC browser http://192.168.30.10
