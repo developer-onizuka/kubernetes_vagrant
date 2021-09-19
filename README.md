@@ -180,54 +180,11 @@ $ ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.101
 $ ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.102
 ```
 
+# 7. Labeling on Master node
 ```
-<Master Step#1>
-sudo hostnamectl set-hostname master
-sudo swapoff -a
-sudo systemctl mask "dev-mapper-vgvagrant\x2dswap_1.swap"
-sudo systemctl --type swap -all
-sudo vi /etc/fstab
-sudo reboot
-sudo apt-get update
-sudo apt-get install -y curl
-curl https://get.docker.com | sh && sudo systemctl --now enable docker
-cat <<EOF | sudo tee /etc/docker/daemon.json
-{
-  "exec-opts": ["native.cgroupdriver=systemd"],
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m"
-  },
-  "storage-driver": "overlay2"
-}
-EOF
-
-sudo systemctl enable docker
-sudo systemctl daemon-reload
-sudo systemctl restart docker
-curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
-deb https://apt.kubernetes.io/ kubernetes-xenial main
-EOF
-
-sudo apt-get update \
-&& sudo apt-get install -y -q kubelet kubectl kubeadm \
-&& sudo kubeadm init --pod-network-cidr=192.168.0.0/16 \
---apiserver-advertise-address=192.168.30.100
-
-mkdir -p $HOME/.kube \
-&& sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config \
-&& sudo chown $(id -u):$(id -g) $HOME/.kube/config
-
-kubectl taint nodes --all node-role.kubernetes.io/master-
-kubectl get nodes
-
-
-<Master Step#2>
-kubectl label node worker1 node-role.kubernetes.io/node=worker1
-kubectl label node worker2 node-role.kubernetes.io/node=worker2
-
-kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+sudo kubectl label node worker1 node-role.kubernetes.io/node=worker1
+sudo kubectl label node worker2 node-role.kubernetes.io/node=worker2
+```
 
 
 curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
