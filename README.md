@@ -14,113 +14,164 @@ $ vagrant init bento/ubuntu-20.04
 ```
 
 # 3. Edit Vagrantfile
-You might edit the file of Vagrantfile located in the D:\Vagrant\ubuntu20 .
+You might use the file of Vagrantfile located in the /mnt/vagrant/ubuntu below:
 ```
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-  config.vm.box = "bento/ubuntu-20.04"
-
+  config.vm.box = "generic/ubuntu2010"
   config.vm.define "master" do |server|
-    server.vm.network "private_network", ip: "192.168.30.100"
+    server.vm.network "private_network", ip: "192.168.33.100"
     server.vm.hostname = "master"
     server.vm.provision "shell", inline: <<-SHELL
       sudo swapoff -a
-      sudo systemctl mask "dev-mapper-vgvagrant\x2dswap_1.swap"
-      sudo sed -ie "11d" /etc/fstab
+      sudo systemctl mask "swap.img.swap"
+      sudo apt-get update
+      sudo apt-get install -y curl
+      sudo apt-get install -y docker.io
+      cat <<EOF > /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+      sudo systemctl enable docker
+      sudo systemctl daemon-reload
+      sudo systemctl restart docker
+      curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+      cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+      sudo apt-get update
+      sudo apt-get install -y -q kubelet kubectl kubeadm
+      sudo kubeadm init --pod-network-cidr=192.168.0.0/16 --apiserver-advertise-address=192.168.33.100
+      mkdir -p $HOME/.kube
+      sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+      sudo chown $(id -u):$(id -g) $HOME/.kube/config
+      kubectl taint nodes --all node-role.kubernetes.io/master-
+      kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+      curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+      chmod 700 get_helm.sh
+      ./get_helm.sh
+      helm repo add stable https://charts.helm.sh/stable
+    SHELL
+  end
+
+  config.vm.define "worker1" do |server|
+    server.vm.network "private_network", ip: "192.168.33.101"
+    server.vm.hostname = "worker1"
+    server.vm.provision "shell", inline: <<-SHELL
+      sudo swapoff -a
+      sudo systemctl mask "swap.img.swap"
       apt-get update
-      apt-get install -y curl
-      curl https://get.docker.com | sh && sudo systemctl --now enable docker
-      cat <<EOF | sudo tee /etc/docker/daemon.json
-      {
-        "exec-opts": ["native.cgroupdriver=systemd"],
-        "log-driver": "json-file",
-        "log-opts": {
-          "max-size": "100m"
-        },
-        "storage-driver": "overlay2"
-      }
-      EOF
+      sudo apt-get install -y curl
+      sudo apt-get install -y docker.io
+      cat <<EOF > /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+      sudo systemctl enable docker
+      sudo systemctl daemon-reload
+      sudo systemctl restart docker
+      curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+      cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+      sudo apt-get update
+      sudo apt-get install -y -q kubelet kubectl kubeadm
+    SHELL
+  end
+  config.vm.define "worker2" do |server|
+    server.vm.network "private_network", ip: "192.168.33.102"
+    server.vm.hostname = "worker2"
+    server.vm.provision "shell", inline: <<-SHELL
+      sudo swapoff -a
+      sudo systemctl mask "swap.img.swap"
+      apt-get update
+      sudo apt-get install -y curl
+      sudo apt-get install -y docker.io
+      cat <<EOF > /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+      sudo systemctl enable docker
+      sudo systemctl daemon-reload
+      sudo systemctl restart docker
+      curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+      cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+deb https://apt.kubernetes.io/ kubernetes-xenial main
+EOF
+      sudo apt-get update
+      sudo apt-get install -y -q kubelet kubectl kubeadm
+    SHELL
+  end
+  config.vm.define "haproxy" do |server|
+    server.vm.network "private_network", ip: "192.168.33.10"
+    server.vm.network "private_network", ip: "192.168.133.10"
+    server.vm.hostname = "haproxy"
+    server.vm.provision "shell", inline: <<-SHELL
+      sudo swapoff -a
+      sudo systemctl mask "swap.img.swap"
+      apt-get update
+      sudo apt-get install -y curl
+      sudo apt-get install -y docker.io
+      cat <<EOF > /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
       sudo systemctl enable docker
       sudo systemctl daemon-reload
       sudo systemctl restart docker
     SHELL
-  end
-  config.vm.define "worker1" do |server|
-    server.vm.network "private_network", ip: "192.168.30.101"
-    server.vm.hostname = "worker1"
-  end
-  config.vm.define "worker2" do |server|
-    server.vm.network "private_network", ip: "192.168.30.102"
-    server.vm.hostname = "worker2"
-  end
-  config.vm.define "haproxy" do |server|
-    server.vm.network "private_network", ip: "192.168.30.10"
-    server.vm.network "private_network", ip: "192.168.199.10"
-    server.vm.hostname = "haproxy"
-  end
-  config.vm.provider "virtualbox" do |vb|
-    vb.gui = false
-  
-    # Customize the amount of memory on the VM:
-    vb.memory = "4096"
-    vb.cpus = "2"
   end
 end
 ```
 
 # 4. Up all VMs
 ```
-$ vagrant up
+$ vagrant up --provider=libvirt
 ```
 
 # 5. Login to Haproxy VM via PuTTy
 The login name and password are "vagrant" as default.
 ```
-login as: vagrant
-vagrant@192.168.30.10's password:
-Welcome to Ubuntu 20.04.2 LTS (GNU/Linux 5.4.0-80-generic x86_64)
-
- * Documentation:  https://help.ubuntu.com
- * Management:     https://landscape.canonical.com
- * Support:        https://ubuntu.com/advantage
-
-  System information as of Sun 19 Sep 2021 02:28:54 AM UTC
-
-  System load:  0.0               Users logged in:       0
-  Usage of /:   2.3% of 61.31GB   IPv4 address for eth0: 10.0.2.15
-  Memory usage: 4%                IPv4 address for eth1: 192.168.30.10
-  Swap usage:   0%                IPv4 address for eth2: 192.168.199.10
-  Processes:    117
-
-
-This system is built by the Bento project by Chef Software
-More information can be found at https://github.com/chef/bento
-vagrant@vagrant:~$
+$ ssh vagrant@192.168.33.10
+vagrant@192.168.33.10's password: 
+Last login: Sun Sep 19 13:08:55 2021 from 192.168.33.1
+vagrant@haproxy:~$ 
 ```
 
 # 6. SSH settings from HAproxy
 ```
-cd
-sudo hostnamectl set-hostname haproxy
-ssh-keygen -t rsa
-ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.100
-ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.101
-ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.102
-ssh vagrant@192.168.30.100
-ssh vagrant@192.168.30.101
-ssh vagrant@192.168.30.102
+$ sudo hostnamectl set-hostname haproxy
+$ ssh-keygen -t rsa
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.100
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.101
+$ ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.102
 ```
-
-# 7. Install Docker on every node
-```
-sudo apt-get update
-sudo apt-get install -y curl
-curl https://get.docker.com | sh && sudo systemctl --now enable docker
-```
-
-
 
 ```
 <Master Step#1>
