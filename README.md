@@ -21,6 +21,7 @@ You might use the file of Vagrantfile located in the /mnt/vagrant/ubuntu below:
 
 Vagrant.configure("2") do |config|
   config.vm.box = "generic/ubuntu2010"
+#-------------------- master --------------------#
   config.vm.define "master" do |server|
     server.vm.network "private_network", ip: "192.168.33.100"
     server.vm.hostname = "master"
@@ -62,7 +63,7 @@ EOF
       helm repo add stable https://charts.helm.sh/stable
     SHELL
   end
-
+#-------------------- worker1 --------------------#
   config.vm.define "worker1" do |server|
     server.vm.network "private_network", ip: "192.168.33.101"
     server.vm.hostname = "worker1"
@@ -94,6 +95,7 @@ EOF
       sudo apt-get install -y -q kubelet kubectl kubeadm
     SHELL
   end
+#-------------------- worker2 --------------------#
   config.vm.define "worker2" do |server|
     server.vm.network "private_network", ip: "192.168.33.102"
     server.vm.hostname = "worker2"
@@ -125,6 +127,7 @@ EOF
       sudo apt-get install -y -q kubelet kubectl kubeadm
     SHELL
   end
+#-------------------- haproxy --------------------#
   config.vm.define "haproxy" do |server|
     server.vm.network "private_network", ip: "192.168.33.10"
     server.vm.network "private_network", ip: "192.168.133.10"
