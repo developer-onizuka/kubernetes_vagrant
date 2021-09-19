@@ -27,6 +27,7 @@ Vagrant.configure("2") do |config|
     server.vm.provision "shell", inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
+      sudo sed -ie "12d" /etc/fstab
       sudo apt-get update
       sudo apt-get install -y curl
       sudo apt-get install -y docker.io
@@ -68,6 +69,7 @@ EOF
     server.vm.provision "shell", inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
+      sudo sed -ie "12d" /etc/fstab
       apt-get update
       sudo apt-get install -y curl
       sudo apt-get install -y docker.io
@@ -98,6 +100,7 @@ EOF
     server.vm.provision "shell", inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
+      sudo sed -ie "12d" /etc/fstab
       apt-get update
       sudo apt-get install -y curl
       sudo apt-get install -y docker.io
@@ -129,6 +132,7 @@ EOF
     server.vm.provision "shell", inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
+      sudo sed -ie "12d" /etc/fstab
       apt-get update
       sudo apt-get install -y curl
       sudo apt-get install -y docker.io
