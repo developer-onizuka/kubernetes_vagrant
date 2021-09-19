@@ -122,7 +122,7 @@ curl https://get.docker.com | sh && sudo systemctl --now enable docker
 
 
 
-
+```
 <Master Step#1>
 sudo hostnamectl set-hostname master
 sudo swapoff -a
