@@ -105,9 +105,9 @@ vagrant@vagrant:~$
 cd
 sudo hostnamectl set-hostname haproxy
 ssh-keygen -t rsa
-ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.30.100
-ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.30.101
-ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.30.102
+ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.100
+ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.101
+ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.102
 ssh vagrant@192.168.30.100
 ssh vagrant@192.168.30.101
 ssh vagrant@192.168.30.102
