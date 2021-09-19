@@ -10,7 +10,7 @@ You can select the OS images which is called as "box" in https://app.vagrantup.c
 ```
 $ mkdir -p /mnt/vagrant/ubuntu
 $ cd /mnt/vagrant/ubuntu
-$ vagrant init bento/ubuntu-20.04
+$ vagrant init generic/ubuntu2010
 ```
 
 # 3. Edit Vagrantfile
