@@ -27,25 +27,52 @@ Vagrant.configure("2") do |config|
 
   config.vm.define "master" do |server|
     server.vm.network "private_network", ip: "192.168.30.100"
+    server.vm.hostname = "master"
   end
   config.vm.define "worker1" do |server|
     server.vm.network "private_network", ip: "192.168.30.101"
+    server.vm.hostname = "worker1"
   end
   config.vm.define "worker2" do |server|
     server.vm.network "private_network", ip: "192.168.30.102"
+    server.vm.hostname = "worker2"
   end
   config.vm.define "haproxy" do |server|
     server.vm.network "private_network", ip: "192.168.30.10"
     server.vm.network "private_network", ip: "192.168.199.10"
+    server.vm.hostname = "haproxy"
   end
+
+
   config.vm.provider "virtualbox" do |vb|
-    # Display the VirtualBox GUI when booting the machine
     vb.gui = false
   
     # Customize the amount of memory on the VM:
     vb.memory = "4096"
     vb.cpus = "2"
   end
+
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo swapoff -a
+    sudo systemctl mask "dev-mapper-vgvagrant\x2dswap_1.swap"
+    sudo sed -ie "11d" /etc/fstab
+    apt-get update
+    apt-get install -y curl
+    curl https://get.docker.com | sh && sudo systemctl --now enable docker
+    cat <<EOF | sudo tee /etc/docker/daemon.json
+    {
+      "exec-opts": ["native.cgroupdriver=systemd"],
+      "log-driver": "json-file",
+      "log-opts": {
+        "max-size": "100m"
+      },
+      "storage-driver": "overlay2"
+    }
+    EOF
+    sudo systemctl enable docker
+    sudo systemctl daemon-reload
+    sudo systemctl restart docker
+  SHELL
 end
 ```
 
