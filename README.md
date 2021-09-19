@@ -265,3 +265,4 @@ EOF
 sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro haproxy:1.8
 
 From PC browser http://192.168.30.10
+  ```
