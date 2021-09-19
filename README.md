@@ -157,7 +157,7 @@ EOF
 end
 ```
 
-# 4. Up all VMs
+# 4. Vagrant Up for all VMs
 ```
 $ vagrant up --provider=libvirt
 ```
