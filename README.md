@@ -1,19 +1,16 @@
 # kubernetes_vagrant
 
-# 1. Install VirtualBox nad Vagrant on your Windows
-
-https://www.vagrantup.com/downloads
-https://www.virtualbox.org/wiki/Downloads
+# 1. Install Vagrant on your Ubuntu
+```
+$ sudo apt install --yes vagrant vagrant-libvirt
+```
 
 # 2. Make dir and Initization vagrant
 You can select the OS images which is called as "box" in https://app.vagrantup.com/boxes/search.
 ```
-PS C:\Users\developer> D:
-PS D:\> mkdir Vagrant
-PS D:\> cd Vagrant
-PS D:\Vagrant\> mkdir ubuntu20
-PS D:\> cd ubuntu20
-PS D:\Vagrant\ubuntu20> vagrant init bento/ubuntu-20.04
+$ mkdir -p /mnt/vagrant/ubuntu
+$ cd /mnt/vagrant/ubuntu
+$ vagrant init bento/ubuntu-20.04
 ```
 
 # 3. Edit Vagrantfile
@@ -28,6 +25,27 @@ Vagrant.configure("2") do |config|
   config.vm.define "master" do |server|
     server.vm.network "private_network", ip: "192.168.30.100"
     server.vm.hostname = "master"
+    server.vm.provision "shell", inline: <<-SHELL
+      sudo swapoff -a
+      sudo systemctl mask "dev-mapper-vgvagrant\x2dswap_1.swap"
+      sudo sed -ie "11d" /etc/fstab
+      apt-get update
+      apt-get install -y curl
+      curl https://get.docker.com | sh && sudo systemctl --now enable docker
+      cat <<EOF | sudo tee /etc/docker/daemon.json
+      {
+        "exec-opts": ["native.cgroupdriver=systemd"],
+        "log-driver": "json-file",
+        "log-opts": {
+          "max-size": "100m"
+        },
+        "storage-driver": "overlay2"
+      }
+      EOF
+      sudo systemctl enable docker
+      sudo systemctl daemon-reload
+      sudo systemctl restart docker
+    SHELL
   end
   config.vm.define "worker1" do |server|
     server.vm.network "private_network", ip: "192.168.30.101"
@@ -42,8 +60,6 @@ Vagrant.configure("2") do |config|
     server.vm.network "private_network", ip: "192.168.199.10"
     server.vm.hostname = "haproxy"
   end
-
-
   config.vm.provider "virtualbox" do |vb|
     vb.gui = false
   
@@ -51,34 +67,12 @@ Vagrant.configure("2") do |config|
     vb.memory = "4096"
     vb.cpus = "2"
   end
-
-  config.vm.provision "shell", inline: <<-SHELL
-    sudo swapoff -a
-    sudo systemctl mask "dev-mapper-vgvagrant\x2dswap_1.swap"
-    sudo sed -ie "11d" /etc/fstab
-    apt-get update
-    apt-get install -y curl
-    curl https://get.docker.com | sh && sudo systemctl --now enable docker
-    cat <<EOF | sudo tee /etc/docker/daemon.json
-    {
-      "exec-opts": ["native.cgroupdriver=systemd"],
-      "log-driver": "json-file",
-      "log-opts": {
-        "max-size": "100m"
-      },
-      "storage-driver": "overlay2"
-    }
-    EOF
-    sudo systemctl enable docker
-    sudo systemctl daemon-reload
-    sudo systemctl restart docker
-  SHELL
 end
 ```
 
 # 4. Up all VMs
 ```
-PS D:\Vagrant\ubuntu20> vagrant up
+$ vagrant up
 ```
 
 # 5. Login to Haproxy VM via PuTTy
