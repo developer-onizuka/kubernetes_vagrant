@@ -154,6 +154,7 @@ EOF
       sudo systemctl restart docker
     SHELL
   end
+#------------------------------------------------#
 end
 ```
 
