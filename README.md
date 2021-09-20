@@ -75,7 +75,7 @@ EOF
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
-      apt-get update
+      sudo apt-get update
       sudo apt-get install -y curl
       sudo apt-get install -y docker.io
       cat <<EOF > /etc/docker/daemon.json
@@ -107,7 +107,7 @@ EOF
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
-      apt-get update
+      sudo apt-get update
       sudo apt-get install -y curl
       sudo apt-get install -y docker.io
       cat <<EOF > /etc/docker/daemon.json
@@ -136,8 +136,8 @@ EOF
     server.vm.network "private_network", ip: "192.168.33.10"
     server.vm.network "private_network", ip: "192.168.133.10"
     server.vm.hostname = "haproxy"
-    server.vm.provision "shell", inline: <<-SHELL
-      apt-get update
+    server.vm.provision "shell", privileged: false, inline: <<-SHELL
+      sudo apt-get update
       sudo apt-get install -y docker.io
       sudo apt-get install -y sshpass
       su - vagrant
