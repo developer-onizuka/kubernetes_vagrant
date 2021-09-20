@@ -185,35 +185,60 @@ worker2   Ready    node                   94s    v1.22.2
 
 # 5. Helm instal hello-world
 ```
-$ helm install --generate-name hello-world
-NAME: hello-world-1631973493
-LAST DEPLOYED: Sat Sep 18 13:58:13 2021
+vagrant@master:~$ helm create hello-world
+Creating hello-world
+
+vagrant@master:~$ sudo helm install --generate-name hello-world
+NAME: hello-world-1632116415
+LAST DEPLOYED: Mon Sep 20 05:40:16 2021
 NAMESPACE: default
 STATUS: deployed
 REVISION: 1
 NOTES:
 1. Get the application URL by running these commands:
-  export NODE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services hello-world-1631973493)
-  export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
-  echo http://$NODE_IP:$NODE_PORT
+     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+           You can watch the status of by running 'kubectl get --namespace default svc -w hello-world-1632116415'
+  export SERVICE_IP=$(kubectl get svc --namespace default hello-world-1632116415 --template "{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}")
+  echo http://$SERVICE_IP:80
+vagrant@master:~$ sudo kubectl get services
+NAME                     TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)        AGE
+hello-world-1632116415   LoadBalancer   10.100.217.184   192.168.133.100   80:32428/TCP   8s
+kubernetes               ClusterIP      10.96.0.1        <none>            443/TCP        13m
 ```
 
+# 6. Access from HAproxy server
+```
+vagrant@haproxy:~$ curl http://192.168.33.100:32428
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
 
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
 
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+```
 
-kubectl get services
-NAME                     TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
-hello-world-1631973493   NodePort    10.102.98.109   <none>        80:31627/TCP   33s
-kubernetes               ClusterIP   10.96.0.1       <none>        443/TCP        142m
-
-helm delete $(helm ls -n default | awk '/hello-world/{print $1}') -n default
-
-
-
-
-
-
-cat <<EOF > haproxy.cfg
+# 7. Install HAproxy container on HAproxy server
+```
+vagrant@haproxy:~$ cat <<EOF > haproxy.cfg
 global
     maxconn 256
 
@@ -225,10 +250,18 @@ defaults
 
 listen http-in
     bind *:80
-    server proxy-server 192.168.199.10
+    server proxy-server 192.168.33.100:32428
 EOF
 
-sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro haproxy:1.8
+$ sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro haproxy:1.8
 
-From PC browser http://192.168.30.10
-  ```
+From PC browser http://192.168.33.10
+```
+
+# 8. Uninstall hello-world
+```
+sudo helm delete $(sudo helm ls -n default | awk '/hello-world/{print $1}') -n default
+```
+
+
+
