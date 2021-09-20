@@ -183,7 +183,8 @@ worker1   Ready    node                   96s    v1.22.2
 worker2   Ready    node                   94s    v1.22.2
 ```
 
-# 5. Helm instal hello-world
+# 5. Helm instal hello-world 
+# 5-1. Case 1 Using LocadBalancer
 ```
 vagrant@master:~$ helm create hello-world
 Creating hello-world
@@ -234,8 +235,8 @@ hello-world-1632120065   LoadBalancer   10.109.32.30   192.168.33.101   8080:324
 kubernetes               ClusterIP      10.96.0.1      <none>           443/TCP          82m
 ```
 
-# 5-1. Access from Host Machine
-Blowse http://192.168.33.101:8080/ --> Accessible
+# Access from Host Machine
+Blowse http://192.168.33.101:8080/  --> Accessible
 
 Blowse http://192.168.33.102:8080/  --> Not Accessible
 
@@ -244,7 +245,7 @@ Blowse http://192.168.33.100:8080/  --> Not Accessible
 
 https://medium.com/@aki030402/kubernetes-%E3%83%8D%E3%83%83%E3%83%88%E3%83%AF%E3%83%BC%E3%82%AF%E6%A7%8B%E6%88%90-6859ad9f0254
 
-# 6. (Optional) Using HAproxy
+# (Optional) Using HAproxy
 Confirm you can not access http://192.168.133.10 before this step. 
 
 After this step, you can access http://192.168.133.10 from PC. It means that the IP address exposed outside is only 192.168.133.10 and you don't need expose the 192.168.33.101 to privent from attacks of internet outside.
@@ -294,6 +295,66 @@ EOF
 
 $ sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro haproxy:1.8
 ```
+
+
+# 5-2. Case 2 Using NodePort
+```
+vagrant@master:~$ helm create hello-world
+Creating hello-world
+
+vagrant@master:~$ vi hello-world/values.yaml
+.....
+service:
+  type: NodePort      # changed from ClusterIP
+  port: 8080          # changed from 80
+.....
+
+vagrant@master:~$ cat <<EOF > hello-world/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hello-world.fullname" . }}
+  labels:
+    {{- include "hello-world.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+      nodePort: 30001
+  selector:
+    {{- include "hello-world.selectorLabels" . | nindent 4 }}
+EOF
+
+vagrant@master:~$ sudo helm install --generate-name hello-world
+NAME: hello-world-1632122557
+LAST DEPLOYED: Mon Sep 20 07:22:37 2021
+NAMESPACE: default
+STATUS: deployed
+REVISION: 1
+NOTES:
+1. Get the application URL by running these commands:
+  export NODE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services hello-world-1632122557)
+  export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+
+vagrant@master:~$ sudo kubectl get services
+NAME                     TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)          AGE
+hello-world-1632122557   NodePort    10.110.139.187   <none>        8080:30001/TCP   2s
+kubernetes               ClusterIP   10.96.0.1        <none>        443/TCP          115m
+```
+# Access from Host Machine
+Blowse http://192.168.33.101:30001/  --> Accessible
+
+Blowse http://192.168.33.102:30001/  --> Accessible
+
+Blowse http://192.168.33.100:30001/  --> Accessible
+
+
+
+
 
 # 7. Uninstall hello-world
 ```
