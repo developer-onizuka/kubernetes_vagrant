@@ -140,6 +140,7 @@ EOF
       apt-get update
       sudo apt-get install -y docker.io
       sudo apt-get install -y sshpass
+      su - vagrant
       ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
       sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.100
       sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.101
