@@ -183,10 +183,37 @@ worker1   Ready    node                   96s    v1.22.2
 worker2   Ready    node                   94s    v1.22.2
 ```
 
-# 5. Helm instal hello-world
+# 5. Helm instal hello-world (Case not using HAproxy)
 ```
 vagrant@master:~$ helm create hello-world
 Creating hello-world
+
+vagrant@master:~$ vi hello-world/values.yaml
+.....
+service:
+  type: LoadBalancer  # changed from ClusterIP
+  port: 8080          # changed from 80
+.....
+
+vagrant@master:~$ cat <<EOF > hello-world/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "hello-world.fullname" . }}
+  labels:
+    {{- include "hello-world.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  externalIPs:
+  - 192.168.33.101 #worker1
+  selector:
+    {{- include "hello-world.selectorLabels" . | nindent 4 }}
+EOF
 
 vagrant@master:~$ sudo helm install --generate-name hello-world
 NAME: hello-world-1632116415
@@ -200,13 +227,29 @@ NOTES:
            You can watch the status of by running 'kubectl get --namespace default svc -w hello-world-1632116415'
   export SERVICE_IP=$(kubectl get svc --namespace default hello-world-1632116415 --template "{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}")
   echo http://$SERVICE_IP:80
+
 vagrant@master:~$ sudo kubectl get services
-NAME                     TYPE           CLUSTER-IP       EXTERNAL-IP       PORT(S)        AGE
-hello-world-1632116415   LoadBalancer   10.100.217.184   192.168.133.100   80:32428/TCP   8s
-kubernetes               ClusterIP      10.96.0.1        <none>            443/TCP        13m
+NAME                     TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)          AGE
+hello-world-1632120065   LoadBalancer   10.109.32.30   192.168.33.101   8080:32485/TCP   7m42s
+kubernetes               ClusterIP      10.96.0.1      <none>           443/TCP          82m
 ```
 
-# 6. Access from HAproxy server
+# 5-1. Access from Host Machine
+Blowse http://192.168.33.101:8080
+
+# 6. Helm instal hello-world (Case using HAproxy)
+```
+vagrant@master:~$ helm create hello-world
+Creating hello-world
+
+vagrant@master:~$ vi hello-world/values.yaml
+.....
+service:
+  type: NodePort      # changed from ClusterIP
+  port: 8080          # changed from 80
+.....
+```
+
 ```
 vagrant@haproxy:~$ curl http://192.168.33.100:32428
 <!DOCTYPE html>
