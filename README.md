@@ -21,6 +21,10 @@ You might use the file of Vagrantfile located in the /mnt/vagrant/ubuntu below:
 
 Vagrant.configure("2") do |config|
   config.vm.box = "generic/ubuntu2010"
+  config.vm.provider :libvirt do |kvm|
+    kvm.memory = 4096
+    kvm.cpus = 2
+  end
 #-------------------- master --------------------#
   config.vm.define "master" do |server|
     server.vm.network "private_network", ip: "192.168.33.100"
@@ -152,6 +156,10 @@ EOF
       sudo systemctl enable docker
       sudo systemctl daemon-reload
       sudo systemctl restart docker
+      ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
+      sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.100
+      sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.101
+      sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.102
     SHELL
   end
 #------------------------------------------------#
