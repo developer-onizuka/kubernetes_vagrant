@@ -174,7 +174,7 @@ end
 ```
 $ vagrant up --provider=libvirt
 ```
-You can login to the master-node (192.168.33.100) so you can check if master and workers are ready.
+You can login to the master-node (192.168.33.100), so you can check if master and workers are ready.
 ```
 vagrant@master:~$ sudo kubectl get nodes
 NAME      STATUS   ROLES                  AGE    VERSION
