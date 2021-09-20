@@ -236,7 +236,9 @@ kubernetes               ClusterIP      10.96.0.1      <none>           443/TCP 
 
 # 5-1. Access from Host Machine
 Blowse http://192.168.33.101:8080/ --> Accessible
+
 Blowse http://192.168.33.102:8080/  --> Not Accessible
+
 Blowse http://192.168.33.100:8080/  --> Not Accessible
 
 
