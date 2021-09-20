@@ -184,7 +184,7 @@ worker2   Ready    node                   94s    v1.22.2
 ```
 
 # 5. Helm instal hello-world 
-# 5-1. Case 1 Using LocadBalancer
+# 5-1. (Case 1) Using LocadBalancer
 ```
 vagrant@master:~$ helm create hello-world
 Creating hello-world
@@ -297,7 +297,7 @@ $ sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/l
 ```
 
 
-# 5-2. Case 2 Using NodePort
+# 5-2. (Case 2) Using NodePort
 ```
 vagrant@master:~$ helm create hello-world
 Creating hello-world
@@ -352,7 +352,60 @@ Blowse http://192.168.33.102:30001/  --> Accessible
 
 Blowse http://192.168.33.100:30001/  --> Accessible
 
+# (Optional) Using HAproxy
+Confirm you can not access http://192.168.133.10 before this step. 
 
+After this step, you can access http://192.168.133.10 from PC. It means that the IP address exposed outside is only 192.168.133.10 and you don't need expose the 192.168.33.101 to privent from attacks of internet outside.
+
+```
+vagrant@haproxy:~$ curl http://192.168.33.100:30001
+vagrant@haproxy:~$ curl http://192.168.33.101:30001
+vagrant@haproxy:~$ curl http://192.168.33.102:30001
+<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+    body {
+        width: 35em;
+        margin: 0 auto;
+        font-family: Tahoma, Verdana, Arial, sans-serif;
+    }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+
+vagrant@haproxy:~$ cat <<EOF > haproxy.cfg
+global
+    maxconn 256
+
+defaults
+    mode http
+    timeout client     120000ms
+    timeout server     120000ms
+    timeout connect      6000ms
+
+listen http-in
+    bind *:80
+    server proxy-server1 192.168.33.100:30001
+    server proxy-server2 192.168.33.101:30001
+    server proxy-server3 192.168.33.102:30001
+EOF
+
+$ sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro haproxy:1.8
+```
 
 
 
