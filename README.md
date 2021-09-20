@@ -29,7 +29,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "master" do |server|
     server.vm.network "private_network", ip: "192.168.33.100"
     server.vm.hostname = "master"
-    server.vm.provision "shell", privileged: false, inline: <<-SHELL
+    server.vm.provision "shell", inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
@@ -86,7 +86,7 @@ EOF
   config.vm.define "worker1" do |server|
     server.vm.network "private_network", ip: "192.168.33.101"
     server.vm.hostname = "worker1"
-    server.vm.provision "shell", privileged: false, inline: <<-SHELL
+    server.vm.provision "shell", inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
@@ -118,7 +118,7 @@ EOF
   config.vm.define "worker2" do |server|
     server.vm.network "private_network", ip: "192.168.33.102"
     server.vm.hostname = "worker2"
-    server.vm.provision "shell", privileged: false, inline: <<-SHELL
+    server.vm.provision "shell", inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
