@@ -137,25 +137,9 @@ EOF
     server.vm.network "private_network", ip: "192.168.133.10"
     server.vm.hostname = "haproxy"
     server.vm.provision "shell", inline: <<-SHELL
-      sudo swapoff -a
-      sudo systemctl mask "swap.img.swap"
-      sudo sed -ie "12d" /etc/fstab
       apt-get update
-      sudo apt-get install -y curl
       sudo apt-get install -y docker.io
-      cat <<EOF > /etc/docker/daemon.json
-{
-  "exec-opts": ["native.cgroupdriver=systemd"],
-  "log-driver": "json-file",
-  "log-opts": {
-    "max-size": "100m"
-  },
-  "storage-driver": "overlay2"
-}
-EOF
-      sudo systemctl enable docker
-      sudo systemctl daemon-reload
-      sudo systemctl restart docker
+      sudo apt-get install -y sshpass
       ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
       sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.100
       sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.101
