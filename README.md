@@ -29,14 +29,23 @@ Vagrant.configure("2") do |config|
   config.vm.define "master" do |server|
     server.vm.network "private_network", ip: "192.168.33.100"
     server.vm.hostname = "master"
-    server.vm.provision "shell", inline: <<-SHELL
+    server.vm.provision "shell", privileged: false, inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
       sudo apt-get update
       sudo apt-get install -y curl
       sudo apt-get install -y docker.io
-      cat <<EOF > /etc/docker/daemon.json
+      sudo apt-get install -y sshpass
+      ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
+      cat <<EOF > ~/.ssh/config
+host 192.168.33.*
+   StrictHostKeyChecking no
+EOF
+      chmod 600 ~/.ssh/config
+      sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.101
+      sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.102
+      sudo cat <<EOF > /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "json-file",
@@ -50,7 +59,7 @@ EOF
       sudo systemctl daemon-reload
       sudo systemctl restart docker
       curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-      cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+      sudo cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
 deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF
       sudo apt-get update
@@ -61,6 +70,12 @@ EOF
       sudo chown $(id -u):$(id -g) $HOME/.kube/config
       kubectl taint nodes --all node-role.kubernetes.io/master-
       kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+      token=$(sudo kubeadm token list |tail -n 1 |awk '{print $1}')
+      hashkey=$(openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //')
+      ssh vagrant@192.168.33.101 sudo kubeadm join 192.168.33.100:6443 --token $token --discovery-token-ca-cert-hash sha256:$hashkey
+      ssh vagrant@192.168.33.102 sudo kubeadm join 192.168.33.100:6443 --token $token --discovery-token-ca-cert-hash sha256:$hashkey
+      sudo kubectl label node worker1 node-role.kubernetes.io/node=worker1
+      sudo kubectl label node worker2 node-role.kubernetes.io/node=worker2
       curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
       chmod 700 get_helm.sh
       ./get_helm.sh
@@ -71,14 +86,14 @@ EOF
   config.vm.define "worker1" do |server|
     server.vm.network "private_network", ip: "192.168.33.101"
     server.vm.hostname = "worker1"
-    server.vm.provision "shell", inline: <<-SHELL
+    server.vm.provision "shell", privileged: false, inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
       sudo apt-get update
       sudo apt-get install -y curl
       sudo apt-get install -y docker.io
-      cat <<EOF > /etc/docker/daemon.json
+      sudo cat <<EOF > /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "json-file",
@@ -92,7 +107,7 @@ EOF
       sudo systemctl daemon-reload
       sudo systemctl restart docker
       curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-      cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+      sudo cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
 deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF
       sudo apt-get update
@@ -103,14 +118,14 @@ EOF
   config.vm.define "worker2" do |server|
     server.vm.network "private_network", ip: "192.168.33.102"
     server.vm.hostname = "worker2"
-    server.vm.provision "shell", inline: <<-SHELL
+    server.vm.provision "shell", privileged: false, inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
       sudo apt-get update
       sudo apt-get install -y curl
       sudo apt-get install -y docker.io
-      cat <<EOF > /etc/docker/daemon.json
+      sudo cat <<EOF > /etc/docker/daemon.json
 {
   "exec-opts": ["native.cgroupdriver=systemd"],
   "log-driver": "json-file",
@@ -124,7 +139,7 @@ EOF
       sudo systemctl daemon-reload
       sudo systemctl restart docker
       curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
-      cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
+      sudo cat <<EOF | sudo tee /etc/apt/sources.list.d/kubernetes.list
 deb https://apt.kubernetes.io/ kubernetes-xenial main
 EOF
       sudo apt-get update
