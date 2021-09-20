@@ -1,4 +1,5 @@
 # kubernetes_vagrant
+https://youtu.be/64p6ywzwiCM
 
 # 1. Install Vagrant on your Ubuntu
 ```
