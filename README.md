@@ -187,7 +187,7 @@ worker2   Ready    node                   94s    v1.22.2
 ```
 
 # 5. Helm instal hello-world 
-# 5-1. (Case 1) Using LocadBalancer
+# 5-1. (Case 1) Using LoadBalancer
 ```
 vagrant@master:~$ helm create hello-world
 Creating hello-world
