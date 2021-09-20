@@ -1,7 +1,7 @@
 # kubernetes_vagrant
 https://youtu.be/64p6ywzwiCM
 
-I like #5-2 case2 rather than #5-1 case1.
+I like #5-2 case2 rather than #5-1 case1, because of perspective of durabilities.
 
 # 1. Install Vagrant on your Ubuntu
 ```
