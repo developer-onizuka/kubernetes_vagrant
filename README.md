@@ -183,7 +183,7 @@ worker1   Ready    node                   96s    v1.22.2
 worker2   Ready    node                   94s    v1.22.2
 ```
 
-# 5. Helm instal hello-world (Case not using HAproxy)
+# 5. Helm instal hello-world
 ```
 vagrant@master:~$ helm create hello-world
 Creating hello-world
@@ -242,21 +242,13 @@ Blowse http://192.168.33.102:8080/  --> Not Accessible
 Blowse http://192.168.33.100:8080/  --> Not Accessible
 
 
-# 6. Helm instal hello-world (Case using HAproxy)
-```
-vagrant@master:~$ helm create hello-world
-Creating hello-world
+# 6. (Optional) Using HAproxy
+Confirm you can not access http://192.168.133.10 before this step. 
 
-vagrant@master:~$ vi hello-world/values.yaml
-.....
-service:
-  type: NodePort      # changed from ClusterIP
-  port: 8080          # changed from 80
-.....
-```
+After this step, you can access http://192.168.133.10 from PC. It means that the IP address exposed outside is only 192.168.133.10 and you don't need expose the 192.168.33.101 to privent from attacks of internet outside.
 
 ```
-vagrant@haproxy:~$ curl http://192.168.33.100:32428
+vagrant@haproxy:~$ curl http://192.168.33.101:8080
 <!DOCTYPE html>
 <html>
 <head>
@@ -282,10 +274,7 @@ Commercial support is available at
 <p><em>Thank you for using nginx.</em></p>
 </body>
 </html>
-```
 
-# 7. Install HAproxy container on HAproxy server
-```
 vagrant@haproxy:~$ cat <<EOF > haproxy.cfg
 global
     maxconn 256
@@ -298,15 +287,13 @@ defaults
 
 listen http-in
     bind *:80
-    server proxy-server 192.168.33.100:32428
+    server proxy-server 192.168.33.101:8080
 EOF
 
 $ sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro haproxy:1.8
-
-From PC browser http://192.168.33.10
 ```
 
-# 8. Uninstall hello-world
+# 7. Uninstall hello-world
 ```
 sudo helm delete $(sudo helm ls -n default | awk '/hello-world/{print $1}') -n default
 ```
