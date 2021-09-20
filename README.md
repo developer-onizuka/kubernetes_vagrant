@@ -355,7 +355,7 @@ Blowse http://192.168.33.100:30001/  --> Accessible
 # (Optional) Using HAproxy
 Confirm you can not access http://192.168.133.10 before this step. 
 
-After this step, you can access http://192.168.133.10 from PC. It means that the IP address exposed outside is only 192.168.133.10 and you don't need expose the 192.168.33.101 to privent from attacks of internet outside.
+After this step, you can access http://192.168.133.10 from PC. It means that the IP address exposed outside is only 192.168.133.10 and you don't need expose the 192.168.33.10x:30001 to privent from attacks of internet outside.
 
 ```
 vagrant@haproxy:~$ curl http://192.168.33.100:30001
