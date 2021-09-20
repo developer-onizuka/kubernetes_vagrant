@@ -140,12 +140,12 @@ EOF
       sudo apt-get update
       sudo apt-get install -y docker.io
       sudo apt-get install -y sshpass
+      ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
       cat <<EOF > ~/.ssh/config
 host 192.168.33.*
    StrictHostKeyChecking no
 EOF
       chmod 600 ~/.ssh/config
-      ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
       sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.100
       sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.101
       sshpass -p "vagrant" ssh-copy-id -i ~/.ssh/id_rsa.pub vagrant@192.168.33.102
