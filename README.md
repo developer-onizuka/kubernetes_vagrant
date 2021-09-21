@@ -246,7 +246,7 @@ Blowse http://192.168.33.102:8080/  --> Not Accessible
 Blowse http://192.168.33.100:8080/  --> Not Accessible
 
 
-https://medium.com/@aki030402/kubernetes-%E3%83%8D%E3%83%83%E3%83%88%E3%83%AF%E3%83%BC%E3%82%AF%E6%A7%8B%E6%88%90-6859ad9f0254
+https://www.imagazine.co.jp/%E5%AE%9F%E8%B7%B5-kubernetes%E3%80%80%E3%80%80%EF%BD%9E%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E7%AE%A1%E7%90%86%E3%81%AE%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%89%E3%83%84%E3%83%BC%E3%83%AB/
 
 # (Optional) Using HAproxy
 Confirm you can not access http://192.168.133.10 before this step. 
