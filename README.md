@@ -3,6 +3,16 @@ https://youtu.be/64p6ywzwiCM
 
 I like #5-2 case2 rather than #5-1 case1 from the perspective of durabilities.
 
+# 0. Goal
+
+|  | CPU | Memory | GPU | GPU Driver |
+| --- | --- | --- | --- | --- |
+| Master | 2 | 4,096 MB | no | N/A |
+| Worker1 | 2 | 4,096 MB | no | N/A |
+| Worker2 | 2 | 4,096 MB | no | N/A |
+| haproxy | 2 | 4,096 MB | no | N/A |
+
+
 # 1. Install Vagrant on your Ubuntu
 ```
 $ sudo apt install --yes vagrant vagrant-libvirt
