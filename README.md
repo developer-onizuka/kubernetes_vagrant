@@ -1,8 +1,6 @@
 # kubernetes_vagrant
 https://youtu.be/64p6ywzwiCM
 
-I like #5-2 case2 rather than #5-1 case1 from the perspective of durabilities.
-
 # 0. Goal
 
 |  | CPU | Memory | GPU | GPU Driver |
@@ -196,121 +194,7 @@ worker1   Ready    node                   96s    v1.22.2
 worker2   Ready    node                   94s    v1.22.2
 ```
 
-# 5. Helm instal hello-world 
-# 5-1. (Case 1) Using LoadBalancer
-```
-vagrant@master:~$ helm create hello-world
-Creating hello-world
-
-vagrant@master:~$ vi hello-world/values.yaml
-.....
-service:
-  type: LoadBalancer  # changed from ClusterIP
-  port: 8080          # changed from 80
-.....
-
-vagrant@master:~$ cat <<EOF > hello-world/templates/service.yaml
-apiVersion: v1
-kind: Service
-metadata:
-  name: {{ include "hello-world.fullname" . }}
-  labels:
-    {{- include "hello-world.labels" . | nindent 4 }}
-spec:
-  type: {{ .Values.service.type }}
-  ports:
-    - port: {{ .Values.service.port }}
-      targetPort: http
-      protocol: TCP
-      name: http
-  externalIPs:
-  - 192.168.33.101 #worker1
-  selector:
-    {{- include "hello-world.selectorLabels" . | nindent 4 }}
-EOF
-
-vagrant@master:~$ sudo helm install --generate-name hello-world
-NAME: hello-world-1632116415
-LAST DEPLOYED: Mon Sep 20 05:40:16 2021
-NAMESPACE: default
-STATUS: deployed
-REVISION: 1
-NOTES:
-1. Get the application URL by running these commands:
-     NOTE: It may take a few minutes for the LoadBalancer IP to be available.
-           You can watch the status of by running 'kubectl get --namespace default svc -w hello-world-1632116415'
-  export SERVICE_IP=$(kubectl get svc --namespace default hello-world-1632116415 --template "{{ range (index .status.loadBalancer.ingress 0) }}{{.}}{{ end }}")
-  echo http://$SERVICE_IP:80
-
-vagrant@master:~$ sudo kubectl get services
-NAME                     TYPE           CLUSTER-IP     EXTERNAL-IP      PORT(S)          AGE
-hello-world-1632120065   LoadBalancer   10.109.32.30   192.168.33.101   8080:32485/TCP   7m42s
-kubernetes               ClusterIP      10.96.0.1      <none>           443/TCP          82m
-```
-
-# Access from Host Machine
-Blowse http://192.168.33.101:8080/  --> Accessible
-
-Blowse http://192.168.33.102:8080/  --> Not Accessible
-
-Blowse http://192.168.33.100:8080/  --> Not Accessible
-
-
-https://www.imagazine.co.jp/%E5%AE%9F%E8%B7%B5-kubernetes%E3%80%80%E3%80%80%EF%BD%9E%E3%82%B3%E3%83%B3%E3%83%86%E3%83%8A%E7%AE%A1%E7%90%86%E3%81%AE%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%80%E3%83%BC%E3%83%89%E3%83%84%E3%83%BC%E3%83%AB/
-
-# (Optional) Using HAproxy
-Confirm you can not access http://192.168.133.10 before this step. 
-
-After this step, you can access http://192.168.133.10 from PC. It means that the IP address exposed outside is only 192.168.133.10 and you don't need exposing the 192.168.33.101 to privent from attacks of internet outside.
-
-```
-vagrant@haproxy:~$ curl http://192.168.33.101:8080
-<!DOCTYPE html>
-<html>
-<head>
-<title>Welcome to nginx!</title>
-<style>
-    body {
-        width: 35em;
-        margin: 0 auto;
-        font-family: Tahoma, Verdana, Arial, sans-serif;
-    }
-</style>
-</head>
-<body>
-<h1>Welcome to nginx!</h1>
-<p>If you see this page, the nginx web server is successfully installed and
-working. Further configuration is required.</p>
-
-<p>For online documentation and support please refer to
-<a href="http://nginx.org/">nginx.org</a>.<br/>
-Commercial support is available at
-<a href="http://nginx.com/">nginx.com</a>.</p>
-
-<p><em>Thank you for using nginx.</em></p>
-</body>
-</html>
-
-vagrant@haproxy:~$ cat <<EOF > haproxy.cfg
-global
-    maxconn 256
-
-defaults
-    mode http
-    timeout client     120000ms
-    timeout server     120000ms
-    timeout connect      6000ms
-
-listen http-in
-    bind *:80
-    server proxy-server 192.168.33.101:8080
-EOF
-
-$ sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro haproxy:1.8
-```
-
-
-# 5-2. (Case 2) Using NodePort
+# 5. Helm instal hello-world Using NodePort
 ```
 vagrant@master:~$ helm create hello-world
 Creating hello-world
@@ -420,9 +304,7 @@ EOF
 $ sudo docker run -itd --rm --name haproxy -p 80:80 -v $(pwd)/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro haproxy:1.8
 ```
 
-
-
-# 7. Uninstall hello-world
+# 6. Uninstall hello-world
 ```
 sudo helm delete $(sudo helm ls -n default | awk '/hello-world/{print $1}') -n default
 ```
