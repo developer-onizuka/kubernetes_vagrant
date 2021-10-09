@@ -79,18 +79,18 @@ EOF
       mkdir -p $HOME/.kube
       sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
       sudo chown $(id -u):$(id -g) $HOME/.kube/config
-      kubectl taint nodes --all node-role.kubernetes.io/master-
-      kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+      sudo kubectl taint nodes --all node-role.kubernetes.io/master-
+      sudo kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
       token=$(sudo kubeadm token list |tail -n 1 |awk '{print $1}')
       hashkey=$(openssl x509 -pubkey -in /etc/kubernetes/pki/ca.crt | openssl rsa -pubin -outform der 2>/dev/null | openssl dgst -sha256 -hex | sed 's/^.* //')
       ssh vagrant@192.168.33.101 sudo kubeadm join 192.168.33.100:6443 --token $token --discovery-token-ca-cert-hash sha256:$hashkey
       ssh vagrant@192.168.33.102 sudo kubeadm join 192.168.33.100:6443 --token $token --discovery-token-ca-cert-hash sha256:$hashkey
       sudo kubectl label node worker1 node-role.kubernetes.io/node=worker1
       sudo kubectl label node worker2 node-role.kubernetes.io/node=worker2
-      curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
-      chmod 700 get_helm.sh
-      ./get_helm.sh
-      helm repo add stable https://charts.helm.sh/stable
+      #curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+      #chmod 700 get_helm.sh
+      #./get_helm.sh
+      #helm repo add stable https://charts.helm.sh/stable
     SHELL
   end
 #-------------------- worker1 --------------------#
