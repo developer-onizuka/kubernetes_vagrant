@@ -37,9 +37,9 @@ Vagrant.configure("2") do |config|
     kvm.cpus = 2
   end
 #-------------------- master --------------------#
-  config.vm.define "master" do |server|
+  config.vm.define "master_192.168.33.100" do |server|
     server.vm.network "private_network", ip: "192.168.33.100"
-    server.vm.hostname = "master_192.168.33.100"
+    server.vm.hostname = "master"
     server.vm.provision "shell", privileged: false, inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
@@ -94,9 +94,9 @@ EOF
     SHELL
   end
 #-------------------- worker1 --------------------#
-  config.vm.define "worker1" do |server|
+  config.vm.define "worker1_192.168.33.101" do |server|
     server.vm.network "private_network", ip: "192.168.33.101"
-    server.vm.hostname = "worker1_192.168.33.101"
+    server.vm.hostname = "worker1"
     server.vm.provision "shell", privileged: false, inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
@@ -126,9 +126,9 @@ EOF
     SHELL
   end
 #-------------------- worker2 --------------------#
-  config.vm.define "worker2" do |server|
+  config.vm.define "worker2_192.168.33.102" do |server|
     server.vm.network "private_network", ip: "192.168.33.102"
-    server.vm.hostname = "worker2_192.168.33.102"
+    server.vm.hostname = "worker2"
     server.vm.provision "shell", privileged: false, inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
@@ -158,10 +158,10 @@ EOF
     SHELL
   end
 #-------------------- haproxy --------------------#
-  config.vm.define "haproxy" do |server|
+  config.vm.define "haproxy_192.168.133.10" do |server|
     server.vm.network "private_network", ip: "192.168.33.10"
     server.vm.network "private_network", ip: "192.168.133.10"
-    server.vm.hostname = "haproxy_192.168.133.10"
+    server.vm.hostname = "haproxy"
     server.vm.provision "shell", privileged: false, inline: <<-SHELL
       sudo apt-get update
       sudo apt-get install -y docker.io
