@@ -196,6 +196,10 @@ worker2   Ready    node                   94s    v1.22.2
 
 # 5. Helm instal hello-world Using NodePort
 ```
+vagrant@master:~$ curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3
+vagrant@master:~$ chmod 700 get_helm.sh
+vagrant@master:~$ ./get_helm.sh
+vagrant@master:~$ helm repo add stable https://charts.helm.sh/stable
 vagrant@master:~$ helm create hello-world
 Creating hello-world
 
