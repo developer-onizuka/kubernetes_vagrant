@@ -19,8 +19,8 @@ $ sudo apt install --yes vagrant vagrant-libvirt
 # 2. Make dir and Initization vagrant
 You can select the OS images which is called as "box" in https://app.vagrantup.com/boxes/search.
 ```
-$ mkdir -p /mnt/vagrant/ubuntu
-$ cd /mnt/vagrant/ubuntu
+$ mkdir -p /mnt/vagrant/k8s
+$ cd /mnt/vagrant/k8s
 $ vagrant init generic/ubuntu2010
 ```
 
@@ -40,7 +40,7 @@ Vagrant.configure("2") do |config|
   config.vm.define "master" do |server|
     server.vm.network "private_network", ip: "192.168.33.100"
     server.vm.hostname = "master"
-    server.vm.provision "shell", inline: <<-SHELL
+    server.vm.provision "shell", privileged: false, inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
@@ -97,7 +97,7 @@ EOF
   config.vm.define "worker1" do |server|
     server.vm.network "private_network", ip: "192.168.33.101"
     server.vm.hostname = "worker1"
-    server.vm.provision "shell", inline: <<-SHELL
+    server.vm.provision "shell", privileged: false, inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
@@ -129,7 +129,7 @@ EOF
   config.vm.define "worker2" do |server|
     server.vm.network "private_network", ip: "192.168.33.102"
     server.vm.hostname = "worker2"
-    server.vm.provision "shell", inline: <<-SHELL
+    server.vm.provision "shell", privileged: false, inline: <<-SHELL
       sudo swapoff -a
       sudo systemctl mask "swap.img.swap"
       sudo sed -ie "12d" /etc/fstab
